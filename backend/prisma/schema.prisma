@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Administrator {
+  id             Int      @id @default(autoincrement())
+  userName       String   @unique
+  password_hash  String
+  created_at     DateTime @default(now())
+}
+
+model Distribution {
+  id          Int               @id @default(autoincrement())
+  name        String
+  description String?
+  logo_url    String?
+  downloads   DownloadLink[]
+  commands    DistributionCommand[]
+}
+
+model DownloadLink {
+  id              Int          @id @default(autoincrement())
+  distribution_id Int
+  url             String
+  description     String?
+  distribution    Distribution @relation(fields: [distribution_id], references: [id], onDelete: Cascade)
+}
+
+model CommandCategory {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  commands Command[]
+}
+
+model Command {
+  id            Int                    @id @default(autoincrement())
+  category_id   Int
+  comand_name   String
+  description   String?
+  example_usage String?
+  category      CommandCategory        @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  distributions DistributionCommand[]
+}
+
+model DistributionCommand {
+  distribution_id Int
+  comand_id      Int
+  notes          String?
+
+  distribution   Distribution @relation(fields: [distribution_id], references: [id], onDelete: Cascade)
+  command        Command      @relation(fields: [comand_id], references: [id], onDelete: Cascade)
+
+  @@id([distribution_id, comand_id])
+}
